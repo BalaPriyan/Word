@@ -10,8 +10,12 @@ RUN yum update -y && \
     yum clean all && \
     rm -rf /var/cache/yum
 
+# Test internet connectivity
+RUN ping -c 4 google.com
+
 # Install aaPanel
-RUN wget -O install.sh https://download.aapanel.com/script/install_6.0_en.sh && \
+RUN wget -O install.sh https://download.aapanel.com/script/install_6.0_en.sh || \
+    { echo "Failed to download aaPanel installation script"; exit 1; } && \
     bash install.sh aapanel
 
 # Expose essential ports
