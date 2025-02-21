@@ -1,22 +1,22 @@
-FROM ubuntu:20.04
+FROM centos:7
 
-# Install necessary packages
-RUN apt-get update && \
-    apt-get install -y wget curl && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:ondrej/php && \
-    apt-get update && \
-    apt-get install -y nginx mysql-server php php-fpm php-mysql php-cli && \
-    apt-get install -y python3 python3-pip && \
-    apt-get clean
+# Install dependencies and setup environment
+RUN yum update -y && \
+    yum install -y wget curl sudo which && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
-# Download AAPanel installer
-RUN wget -O install.sh http://www.aapanel.com/script/install-ubuntu_6.0.23_en.sh && \
-    chmod +x install.sh && \
-    bash install.sh
+# Install aaPanel
+RUN wget -O install.sh https://download.aapanel.com/script/install_6.0_en.sh && \
+    bash install.sh aapanel
 
-# Expose ports
-EXPOSE 80 443
+# Expose essential ports
+# 7800 - aaPanel Web Interface
+# 80/443 - HTTP/HTTPS
+# 21 - FTP
+# 22 - SSH
+# 8888 - phpMyAdmin
+EXPOSE 7800 80 443 21 22 8888
 
-# Start the services
-CMD ["nginx", "-g", "daemon off;"]
+# Start aaPanel services and keep container running
+CMD /etc/init.d/bt start && tail -f /dev/null
