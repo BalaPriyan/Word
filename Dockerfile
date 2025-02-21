@@ -1,30 +1,22 @@
-# Use an official PHP image with Apache
-FROM php:7.4-apache
+FROM ubuntu:20.04
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    unzip \
-    wget \
-    mariadb-server \
-    mariadb-client \
-    && docker-php-ext-install mysqli pdo pdo_mysql
+# Install necessary packages
+RUN apt-get update && \
+    apt-get install -y wget curl && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:ondrej/php && \
+    apt-get update && \
+    apt-get install -y nginx mysql-server php php-fpm php-mysql php-cli && \
+    apt-get install -y python3 python3-pip && \
+    apt-get clean
 
-# Set up MySQL
-RUN mkdir -p /var/run/mysqld && chown -R mysql:mysql /var/run/mysqld
-COPY my.cnf /etc/mysql/my.cnf
+# Download AAPanel installer
+RUN wget -O install.sh http://www.aapanel.com/script/install-ubuntu_6.0.23_en.sh && \
+    chmod +x install.sh && \
+    bash install.sh
 
-# Download and extract WordPress
-RUN wget -O wordpress.tar.gz https://wordpress.org/latest.tar.gz && \
-    tar -xzf wordpress.tar.gz && \
-    mv wordpress /var/www/html/ && \
-    rm wordpress.tar.gz
+# Expose ports
+EXPOSE 80 443
 
-# Set up startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Expose port
-EXPOSE 80
-
-# Set entrypoint
-CMD ["/start.sh"]
+# Start the services
+CMD ["nginx", "-g", "daemon off;"]
